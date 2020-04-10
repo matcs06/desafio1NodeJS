@@ -10,6 +10,16 @@ app.use(cors());
 
 const repositories = [];
 
+function repositoryExists(request, response, next) {
+  const { id } = request.params;
+  const repositoryIndex = repositories.findIndex((repo) => repo.id === id);
+
+  if (repositoryIndex < 0) {
+    return response.status(400).json({ error: "Repository not found!" });
+  }
+  return next();
+}
+
 app.get("/repositories", (request, response) => {
   // TODO
   return response.json(repositories);
@@ -26,17 +36,12 @@ app.post("/repositories", (request, response) => {
   return response.json(repository);
 });
 
-app.put("/repositories/:id", (request, response) => {
+app.put("/repositories/:id", repositoryExists, (request, response) => {
   // TODO
   const { id } = request.params;
   const { title, url, techs } = request.body;
 
   const repositoryIndex = repositories.findIndex((repo) => repo.id === id);
-
-  if (repositoryIndex < 0) {
-    return response.status(400).json({ error: "Repository not found!" });
-  }
-
   const repository = {
     id,
     title,
@@ -50,30 +55,22 @@ app.put("/repositories/:id", (request, response) => {
   return response.json(repository);
 });
 
-app.delete("/repositories/:id", (request, response) => {
+app.delete("/repositories/:id", repositoryExists, (request, response) => {
   // TODO
   const { id } = request.params;
 
   repositoryIndex = repositories.findIndex((repo) => repo.id === id);
-
-  if (repositoryIndex < 0) {
-    return response.status(400).json({ error: "Repository not found!" });
-  }
 
   repositories.splice(repositoryIndex, 1);
 
   return response.status(204).send();
 });
 
-app.post("/repositories/:id/like", (request, response) => {
+app.post("/repositories/:id/like", repositoryExists, (request, response) => {
   // TODO
   const { id } = request.params;
 
   repository = repositories.find((repo) => repo.id === id);
-
-  if (!repository) {
-    return response.status(400).json({ error: "Repository not found!" });
-  }
 
   repository.likes += 1;
 
